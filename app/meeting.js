@@ -14,10 +14,11 @@ export default class Meeting extends Component {
     constructor(props){
         super(props)
         this.state={
-            title:'xxx会议',
+            title:'会议记录',
             dataSource:{
                 date:''
             },
+            confirm:true,
             confirmText:'',
             confirmTextHeight:14,
             personArr:[],
@@ -25,12 +26,17 @@ export default class Meeting extends Component {
         }
     }
     componentWillMount(){
-        const {id} = this.props.navigation.state.params
+        const {id,confirm} = this.props.navigation.state.params
         let _this = this
         _this.setState({
-            id:id
+            id:id,
+            confirm:confirm
         })
-        this.getdata(id)
+        if(confirm){
+            this.getdata(id)
+        }else{
+            this.getdata2(id)
+        }
         
     }
     componentWillUnmount() {
@@ -40,6 +46,34 @@ export default class Meeting extends Component {
         MyFetch.get(
             '/notice/appedit',
             {id:id},
+            res => {
+                console.log(res)
+                let arr=[]
+                for(let i=0;i<res.data.memberlist.data.length;i++){
+                    let item = {}
+                    item.key = res.data.memberlist.data[i].name;
+                    item.account = res.data.memberlist.data[i].account;
+                    item.phone = res.data.memberlist.data[i].phone;
+                    item.email = res.data.memberlist.data[i].email;
+                    arr.push(item)
+                }
+                this.setState({
+                    dataSource:res.data.model.data,
+                    personArr:arr
+                })
+            },
+            err => {
+            Alert.alert('错误', err.message, [
+                { text: '确定' }
+            ])
+            }
+        )
+    }
+
+    getdata2(id){
+        MyFetch.get(
+            '/notice/appview/'+id,
+            {},
             res => {
                 console.log(res)
                 let arr=[]
@@ -161,27 +195,31 @@ export default class Meeting extends Component {
     }
 
     confirm(){
-        return <View style={[styles.confirm,{height:'auto'}]}>
-                <TouchableOpacity activeOpacity = {1} style = {styles.inputContainer} onPress = {() => this.TextInput.focus()} >
-                    <TextInput autoCapitalize="none" 
-                    placeholder="请输入反馈意见"
-                    ref = {textInput => this.TextInput = textInput}
-                    underlineColorAndroid='transparent'
-                    placeholderTextColor='#777'
-                    multiline={true} 
-                    numberOfLines={10}
-                    iosclearButtonMode="while-editing"
-                    onContentSizeChange = {e => this.cauculateHeight(e)}
-                    onChangeText={confirmText => this.setState({confirmText})}
-                    style={[styles.textInput,{height:this.state.confirmTextHeight}]} />
-                </TouchableOpacity>
-                <View style={{width:width/375*102,marginBottom:15,flexDirection:'row',flexWrap:'nowrap',justifyContent:'center',alignItems:'center'}}>
-                    <TouchableOpacity onPress={()=>this.confirmBtn()} style={{width:26,height:26,backgroundColor:'#ffffff',borderRadius:13,justifyContent:'center',alignItems:'center'}}>
-                        <Image source={require('./image/ok.png')}  resizeMode='contain' style={[{height:26,height:26}]} /> 
+        if(this.state.confirm){
+            return <View style={[styles.confirm,{height:'auto'}]}>
+                    <TouchableOpacity activeOpacity = {1} style = {styles.inputContainer} onPress = {() => this.TextInput.focus()} >
+                        <TextInput autoCapitalize="none" 
+                        placeholder="请输入反馈意见"
+                        ref = {textInput => this.TextInput = textInput}
+                        underlineColorAndroid='transparent'
+                        placeholderTextColor='#777'
+                        multiline={true} 
+                        numberOfLines={10}
+                        iosclearButtonMode="while-editing"
+                        onContentSizeChange = {e => this.cauculateHeight(e)}
+                        onChangeText={confirmText => this.setState({confirmText})}
+                        style={[styles.textInput,{height:this.state.confirmTextHeight}]} />
                     </TouchableOpacity>
-                </View>
-
-        </View>
+                    <View style={{width:width/375*102,marginBottom:15,flexDirection:'row',flexWrap:'nowrap',justifyContent:'center',alignItems:'center'}}>
+                        <TouchableOpacity onPress={()=>this.confirmBtn()} style={{width:26,height:26,backgroundColor:'#ffffff',borderRadius:13,justifyContent:'center',alignItems:'center'}}>
+                            <Image source={require('./image/ok.png')}  resizeMode='contain' style={[{height:26,height:26}]} /> 
+                        </TouchableOpacity>
+                    </View>
+    
+            </View>
+        }else{
+            return <View style={[styles.confirm,{height:'auto'}]}></View>
+        }
     }
 
     confirmBtn(){

@@ -38,7 +38,7 @@ const handleJson = (json, callback, ecallback) => {
 
 export default class MyFetch {
   // static rootUrl = 'http://ipapp.dev.hzjuxiu.com:40004' // es6不支持静态属性声明语法
-  // static rootUrl = 'http://192.168.1.80:8080'
+   //static rootUrl = 'http://47.97.190.249/maya/'
   static rootUrl = 'http://192.168.1.13:8098/'
   /**
    * 封装get
@@ -62,7 +62,6 @@ export default class MyFetch {
       } else {
         url += '&' + paramsArray.join('&')
       }
-      console.log(url)
     }
     // fetch请求
     fetch(this.rootUrl + url, { 

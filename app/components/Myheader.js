@@ -22,8 +22,8 @@ export default class MyHeader extends Component {
   }
 
   returnFun () {
-    const { goBack } = this.props.navigation; 
-    goBack()
+    const { navigate } = this.props.navigation; 
+    navigate("Main")
   }
 
   closeFun () {

@@ -8,6 +8,7 @@ import storage from './work/gStorage';
 import Input from './components/input'
 import MyFetch from './work/myFetch';
 import SplashScreen from 'react-native-splash-screen';
+import JPushModule from 'jpush-react-native';
 
 var {height,width} =  Dimensions.get('window');
 
@@ -22,16 +23,42 @@ export default class LoginPage extends Component{
         };
     }
     componentDidMount () {
+        const {navigate} = this.props.navigation;
+        JPushModule.initPush()
         setTimeout(() => {
           SplashScreen.hide()
         }, 2000)
         if (Platform.OS === 'android') {
             StatusBar.setTranslucent(true)
             StatusBar.setBackgroundColor('transparent')// 仅android
+            JPushModule.notifyJSDidLoad((resultCode) => {
+                  if (resultCode === 0) {}
+            });
         }
+        JPushModule.addReceiveNotificationListener((message) => {
+            console.log(message);
+          });
+          // 打开通知
+          JPushModule.addReceiveOpenNotificationListener((map) => {
+            let extra = JSON.parse(map.extras);
+            let id = extra.extMessage;
+            let title = map.alertContent
+            if(title.indexOf('销假')>=0){
+                navigate("Todo",{id:id,type:'销假'})
+            }else if(title.indexOf('出差')>=0){
+                navigate("Todo",{id:id,type:'出差'})
+            }else if(title.indexOf('报销')>=0){
+                navigate("Todo",{id:id,type:'报销'})
+            }else if(title.indexOf('会议')>=0){
+                avigate("Meet",{id:id})
+            }else if(title.indexOf('请假')>=0&&title.indexOf('等待')>=0){
+                navigate("Todo",{id:id,type:'请假'})
+            }
+            // 可执行跳转操作，也可跳转原生页面
+            // this.props.navigation.navigate("SecondActivity");
+        });
         
         BackHandler.addEventListener('hardwareBackPress', this.onBackAndroid);
-        const {navigate} = this.props.navigation;
         storage.load({
             key:'user',
             autoSync: true,
@@ -110,6 +137,9 @@ export default class LoginPage extends Component{
             `account=${account}&password=${password}`,
             res => {
                     console.log(res)
+                    JPushModule.setAlias(account, success => {
+                        console.log('setaccount')
+                    })
                     storage.save({
                         key:'user',    // 注意:请不要在key中使用_下划线符号!
                         data: {

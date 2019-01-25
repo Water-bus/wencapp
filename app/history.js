@@ -9,7 +9,7 @@ var {height,width} =  Dimensions.get('window');
 const { StatusBarManager } = NativeModules;
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT;
 
-export default class Todo extends Component {
+export default class Historys extends Component {
 
     constructor(props){
         super(props)
@@ -19,6 +19,7 @@ export default class Todo extends Component {
             personid:'',
             personname:'请选择',
             type:'',
+            done:false,
             confirmText:'',
             confirmTextHeight:14,
             data:{
@@ -28,28 +29,29 @@ export default class Todo extends Component {
         }
     }
     componentWillMount(){
-        const {id,type,} = this.props.navigation.state.params
+        const {id,type,done} = this.props.navigation.state.params
         let _this = this
         _this.setState({
             type:type,
             id:id,
+            done:done
         })
-        if(type == '请假'){
+        if(type == '请假申请'){
             _this.type1(id)
             _this.setState({
                 title:'请假申请'
             })
-        }else if(type == '销假'){
+        }else if(type == '销假申请'){
             _this.type2(id)
             _this.setState({
                 title:'销假申请'
             })
-        }else if(type == '出差'){
+        }else if(type == '出差申请'){
             _this.type3(id)
             _this.setState({
                 title:'出差申请'
             })
-        }else if(type == '报销'){
+        }else if(type == '报销申请'){
             _this.type4(id)
             _this.setState({
                 title:'报销申请'
@@ -64,8 +66,8 @@ export default class Todo extends Component {
 
     type1(id){
         MyFetch.get(
-            '/leave/appcheck',
-            {id:id},
+            '/leave/appview/'+id,
+            {},
             res => {
                 console.log(res)
                 this.setState({
@@ -81,7 +83,7 @@ export default class Todo extends Component {
     }
     type2(id){
             MyFetch.get(
-                '/end/appcheck',
+                '/end/appview/'+id,
                 {id:id},
                 res => {
                     console.log(res)
@@ -98,8 +100,8 @@ export default class Todo extends Component {
     }
     type3(id){
             MyFetch.get(
-                '/travel/appcheck',
-                {id:id},
+                '/travel/appview/'+id,
+                {},
                 res => {
                     console.log(res)
                     this.setState({
@@ -115,8 +117,8 @@ export default class Todo extends Component {
     }
     type4(id){
             MyFetch.get(
-                '/expense/appcheck',
-                {id:id},
+                '/end/appview/'+id,
+                {},
                 res => {
                     console.log(res)
                     this.setState({
@@ -166,7 +168,7 @@ export default class Todo extends Component {
         const {data} = this.state
         return <View style={styles.form}>
                     <View>
-                        <Text style={{textAlign:"left",fontSize:16}}>{this.state.type}申请</Text>
+                        <Text style={{textAlign:"left",fontSize:16}}>{this.state.type}</Text>
                         <Text style={{textAlign:"left",marginTop:11,fontSize:12,color:"#9EA0B1"}}>发起人:{data.creator}</Text>
                     </View>
                     <View style={{width:'50%',borderLeftColor:'#DDDDDD',borderLeftWidth:1,borderStyle:'dashed',paddingLeft:10}}>
@@ -178,7 +180,7 @@ export default class Todo extends Component {
 
     main(){
         const {data} = this.state
-        if(this.state.type=='请假'){
+        if(this.state.type=='请假申请'){
             return <View style={styles.main}>
                     <View style={styles.mainTime}>
                         <View>
@@ -203,7 +205,7 @@ export default class Todo extends Component {
                         <Text style={{color:'#9EA0B1',fontSize:13,marginVertical:width/375*18}}>{data.reason}</Text>
                     </View>
             </View>
-        } else if(this.state.type=='出差'){
+        } else if(this.state.type=='出差申请'){
             return <View style={styles.main}>
                     <View style={styles.mainTime}>
                         <View>
@@ -231,7 +233,7 @@ export default class Todo extends Component {
                         <Text style={{color:'#9EA0B1',fontSize:13,marginVertical:width/375*18}}>{data.reason}</Text>
                     </View>
             </View>
-        } else if(this.state.type=='销假'){
+        } else if(this.state.type=='销假申请'){
             return <View style={styles.main}>
             <View style={styles.mainTime}>
                 <View>
@@ -267,7 +269,7 @@ export default class Todo extends Component {
                 <Text style={{textAlign:"center",fontSize:10,marginBottom:10,color:'#9EA0B1'}}>销假天数&nbsp;{data.endleave_date}天</Text>
             </View>
     </View>
-    } else if(this.state.type=='报销'){
+    } else if(this.state.type=='报销申请'){
             return <View style={styles.main}>
             <View style={styles.mainTime}>
                 <View>
@@ -319,7 +321,7 @@ export default class Todo extends Component {
 
     money(){
         const {data} = this.state
-        if(this.state.type=="报销"){
+        if(this.state.type=="报销申请"){
             return  <View>
                         {data.personal_standard?
                         <View style={[styles.main]}>
@@ -569,40 +571,6 @@ export default class Todo extends Component {
     confirm(){
         const {data} = this.state
         return <View style={styles.confirm}>
-                <TouchableOpacity activeOpacity = {1} style = {styles.inputContainer} onPress = {() => this.TextInput.focus()} >
-                
-                    <TextInput autoCapitalize="none" 
-                    placeholder="请输入审核意见"
-                    ref = {textInput => this.TextInput = textInput}
-                    underlineColorAndroid='transparent'
-                    placeholderTextColor='#777'
-                    multiline={true} 
-                    numberOfLines={10}
-                    iosclearButtonMode="while-editing"
-                    onContentSizeChange = {e => this.cauculateHeight(e)}
-                    onChangeText={confirmText => this.setState({confirmText})}
-                    style={[styles.textInput,{height:this.state.confirmTextHeight}]} />
-                </TouchableOpacity>
-                <View>
-                    <Text style={{color:'#E46B60',textAlign:'center',fontSize:12,marginBottom:18}}>当前审批状态:</Text>
-                </View>
-                <View style={{flexDirection:'row',marginBottom:24,justifyContent:'space-around'}}>
-                    <TouchableOpacity style={styles.selectNext} onPress={()=>this.getPersonID()}>
-                        <Image source={require('./image/point.png')}  resizeMode='contain' style={[{height:26,height:26}]} /> 
-                    </TouchableOpacity>
-                    <View>    
-                        <Text style={{color:'#9EA0B1',lineHeight:26,textAlign:'center',fontSize:12}}>下一环节审核人:{this.state.personname}</Text>
-                    </View>
-                </View>
-                <View style={{width:width/375*255,marginBottom:15,flexDirection:'row',flexWrap:'nowrap',justifyContent:'space-between',alignItems:'center'}}>
-                    <TouchableOpacity onPress={()=>this.confirmBtn('back')} style={{width:85,height:35,backgroundColor:'#DE6763',borderRadius:5,justifyContent:'center',alignItems:'center'}}>
-                        <Text style={{color:"#fff",fontSize:12,fontWeight:"600"}}>退&nbsp;&nbsp;回</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={()=>this.confirmBtn('pass')} style={{width:85,height:35,backgroundColor:'#73A0FF',borderRadius:5,justifyContent:'center',alignItems:'center'}}>
-                        <Text style={{color:"#fff",fontSize:12,fontWeight:"600"}}>通&nbsp;&nbsp;过</Text>
-                    </TouchableOpacity>
-                </View>
-
         </View>
     }
 
@@ -664,6 +632,7 @@ const styles = StyleSheet.create({
     },
     rootView: {
         flex: 1,
+        minHeight:1000,
         flexDirection:'column',
         flexWrap:'wrap',
         minHeight:height-STATUSBAR_HEIGHT,
@@ -676,7 +645,6 @@ const styles = StyleSheet.create({
       justifyContent: 'flex-start',
       width: '100%',
       position:'relative',
-      height: null,
       // 祛除内部元素的白色背景
       backgroundColor: 'rgba(0,0,0,0)'
     },
@@ -722,7 +690,7 @@ const styles = StyleSheet.create({
     },
     confirm:{
         width:width/375*355,
-        backgroundColor:"#fff",
+        backgroundColor:"transparent",
         borderRadius:5,
         height:width/375*255,
         flexDirection:'column',

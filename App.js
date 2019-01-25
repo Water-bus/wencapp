@@ -7,6 +7,7 @@ import Todo from './app/todoItem';
 import SplashScreen from 'react-native-splash-screen';
 import Meeting from './app/meeting';
 import People from './app/people';
+import Historys from './app/history';
 
 
 // ignore remote debugger warning
@@ -40,6 +41,7 @@ const AppRootStackNavigator = createStackNavigator({
   Todo:{screen:Todo}, // 待办事项
   Meet:{screen:Meeting}, // 会议记录
   People:{screen:People}, // 人员列表
+  History:{screen:Historys}, // 历史记录不包含会议部分
   },
   {
     initialRouteName: 'Login',
